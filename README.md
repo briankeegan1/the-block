@@ -31,7 +31,7 @@ A buyer should be able to browse inventory, inspect vehicle details, and place b
 - This is a prototype, not a production launch.
 - Target roughly **4-8 hours** of work. If you spend more, that's your call, but we do not expect a fully built marketplace.
 - Use any framework, language, or stack.
-- If you want to align with our current web stack, React is preferred. Tailwind is a good fit, but neither is required.
+- If you want to align with our current web stack, a React + Vite setup is a good fit. Tailwind is also a reasonable choice, but none of these are required.
 - You may use AI tools and coding assistants, and their use is encouraged. Be ready to explain how you used them, what decisions you made, and what parts of the implementation you would refine.
 - Authentication and user accounts are **not required**.
 - A frontend-only implementation is completely acceptable.
