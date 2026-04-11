@@ -4,6 +4,7 @@ import VehicleCard from '../components/VehicleCard';
 import SearchBar from '../components/SearchBar';
 import FilterSidebar from '../components/FilterSidebar';
 import { useFilteredVehicles, defaultFilters, getVehicleById } from '../hooks/useVehicles';
+import { getAuctionStatus } from '../lib/format';
 import { useFilterParams } from '../hooks/useFilterParams';
 import type { Filters } from '../hooks/useVehicles';
 import type { useBids } from '../hooks/useBids';
@@ -23,8 +24,9 @@ interface Props {
 export default function InventoryPage({ watchlist, bids }: Props) {
   const { filters, setFilters, page, setPage, isWatchlist, setWatchlist, isMyBids, setMyBids } = useFilterParams();
   const vehicles = useFilteredVehicles(filters);
-  const { getCurrentBid, getBidCount } = bids;
+  const { getCurrentBid, getBidCount, getUserMaxBid } = bids;
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [specialSort, setSpecialSort] = useState('status');
 
   const handleFiltersChange = (newFilters: Filters) => {
     setFilters(newFilters, 1);
@@ -32,15 +34,44 @@ export default function InventoryPage({ watchlist, bids }: Props) {
 
   const isSpecialView = isWatchlist || isMyBids;
 
-  const displayVehicles = isWatchlist
-    ? [...watchlist.watchlist]
-        .map(id => getVehicleById(id))
-        .filter((v): v is NonNullable<typeof v> => v != null)
-    : isMyBids
-    ? bids.getActiveBidIds()
-        .map(id => getVehicleById(id))
-        .filter((v): v is NonNullable<typeof v> => v != null)
-    : vehicles;
+  const displayVehicles = useMemo(() => {
+    let list = isWatchlist
+      ? [...watchlist.watchlist]
+          .map(id => getVehicleById(id))
+          .filter((v): v is NonNullable<typeof v> => v != null)
+      : isMyBids
+      ? bids.getActiveBidIds()
+          .map(id => getVehicleById(id))
+          .filter((v): v is NonNullable<typeof v> => v != null)
+      : vehicles;
+
+    if (isSpecialView && list.length > 1) {
+      const statusPriority = (s: string) => s === 'live' ? 0 : s === 'upcoming' ? 1 : 2;
+      list = [...list];
+      switch (specialSort) {
+        case 'status':
+          list.sort((a, b) => statusPriority(getAuctionStatus(a.auction_start)) - statusPriority(getAuctionStatus(b.auction_start)));
+          break;
+        case 'bid-high':
+          list.sort((a, b) => (getUserMaxBid(b.id) ?? b.current_bid) - (getUserMaxBid(a.id) ?? a.current_bid));
+          break;
+        case 'bid-low':
+          list.sort((a, b) => (getUserMaxBid(a.id) ?? a.current_bid) - (getUserMaxBid(b.id) ?? b.current_bid));
+          break;
+        case 'price-high':
+          list.sort((a, b) => (b.current_bid || b.starting_bid) - (a.current_bid || a.starting_bid));
+          break;
+        case 'price-low':
+          list.sort((a, b) => (a.current_bid || a.starting_bid) - (b.current_bid || b.starting_bid));
+          break;
+        case 'year-new':
+          list.sort((a, b) => b.year - a.year);
+          break;
+      }
+    }
+
+    return list;
+  }, [isWatchlist, isMyBids, isSpecialView, specialSort, watchlist.watchlist, bids, vehicles, getUserMaxBid]);
 
   const totalPages = Math.ceil(displayVehicles.length / PAGE_SIZE);
   const pagedVehicles = useMemo(
@@ -90,12 +121,26 @@ export default function InventoryPage({ watchlist, bids }: Props) {
                   ({displayVehicles.length} vehicle{displayVehicles.length !== 1 ? 's' : ''})
                 </span>
               </div>
-              <button
-                onClick={goBack}
-                className="text-sm text-accent hover:text-accent-hover font-semibold transition"
-              >
-                Back to all vehicles
-              </button>
+              <div className="flex items-center gap-3">
+                <select
+                  value={specialSort}
+                  onChange={e => setSpecialSort(e.target.value)}
+                  className="px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-accent/40 bg-white font-medium"
+                >
+                  <option value="status">Auction Status</option>
+                  {isMyBids && <option value="bid-high">My Bid: High to Low</option>}
+                  {isMyBids && <option value="bid-low">My Bid: Low to High</option>}
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="year-new">Year: Newest</option>
+                </select>
+                <button
+                  onClick={goBack}
+                  className="text-sm text-accent hover:text-accent-hover font-semibold transition"
+                >
+                  Back to all vehicles
+                </button>
+              </div>
             </div>
 
             {displayVehicles.length === 0 ? (
