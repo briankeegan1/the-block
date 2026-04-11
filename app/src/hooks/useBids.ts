@@ -1,37 +1,108 @@
-import { useState, useCallback } from 'react';
-import type { Bid } from '../types/vehicle';
+import { useState, useCallback, useEffect } from 'react';
 
-// In-memory bid store persisted across components via module scope
-const bidStore = new Map<string, { amount: number; count: number }>();
+const STORAGE_KEY = 'the-block-bids';
+
+interface BidState {
+  maxBid: number;       // User's secret maximum bid
+  currentBid: number;   // The visible "current bid" (proxy-elevated)
+  bidCount: number;     // Total bid count including proxy bids
+}
+
+function loadBids(): Map<string, BidState> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return new Map(JSON.parse(stored));
+  } catch { /* ignore */ }
+  return new Map();
+}
+
+function saveBids(bids: Map<string, BidState>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...bids]));
+}
+
+function getMinIncrement(price: number): number {
+  if (price < 5000) return 100;
+  if (price < 15000) return 250;
+  if (price < 30000) return 500;
+  return 1000;
+}
 
 export function useBids() {
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [, setTick] = useState(0);
+  const [bidStore, setBidStore] = useState<Map<string, BidState>>(loadBids);
 
-  const placeBid = useCallback((vehicleId: string, amount: number, originalBid: number, originalCount: number) => {
+  useEffect(() => {
+    saveBids(bidStore);
+  }, [bidStore]);
+
+  const placeBid = useCallback((
+    vehicleId: string,
+    maxBidAmount: number,
+    originalBid: number,
+    originalCount: number
+  ) => {
     const existing = bidStore.get(vehicleId);
-    const currentBid = existing?.amount ?? originalBid;
-    const currentCount = existing?.count ?? originalCount;
+    const currentBid = existing?.currentBid ?? originalBid;
+    const currentCount = existing?.bidCount ?? originalCount;
+    const existingMax = existing?.maxBid ?? 0;
 
-    if (amount <= currentBid) {
-      return { success: false, message: 'Bid must be higher than the current bid' };
+    const minBid = currentBid + getMinIncrement(currentBid);
+
+    // Can't bid below the minimum
+    if (maxBidAmount < minBid) {
+      return { success: false, message: `Minimum bid is $${minBid.toLocaleString()}` };
     }
 
-    const newBid: Bid = { vehicleId, amount, timestamp: Date.now() };
-    bidStore.set(vehicleId, { amount, count: currentCount + 1 });
-    setBids(prev => [...prev, newBid]);
-    setTick(t => t + 1);
+    // If user already has a max bid, they can only increase it
+    if (existingMax > 0 && maxBidAmount <= existingMax) {
+      return {
+        success: false,
+        message: `Your current max bid is $${existingMax.toLocaleString()}. Enter a higher amount to increase it.`
+      };
+    }
 
-    return { success: true, message: 'Bid placed successfully!' };
-  }, []);
+    // Proxy bidding logic:
+    // The "current bid" shown publicly is the minimum needed to be winning.
+    // If there were other bidders, the price would be driven up to just above
+    // the second-highest bid. Since we're single-user, the current bid advances
+    // by one increment above the previous bid.
+    const newCurrentBid = currentBid === 0
+      ? Math.min(maxBidAmount, originalBid + getMinIncrement(originalBid))
+      : currentBid + getMinIncrement(currentBid);
+
+    // Current bid can't exceed the user's max
+    const clampedCurrentBid = Math.min(newCurrentBid, maxBidAmount);
+
+    setBidStore(prev => {
+      const next = new Map(prev);
+      next.set(vehicleId, {
+        maxBid: maxBidAmount,
+        currentBid: clampedCurrentBid,
+        bidCount: (currentCount ?? originalCount) + 1,
+      });
+      return next;
+    });
+
+    const isExactBid = maxBidAmount === clampedCurrentBid;
+
+    return {
+      success: true,
+      message: isExactBid
+        ? `Bid of $${maxBidAmount.toLocaleString()} placed. You're the high bidder!`
+        : `Max bid of $${maxBidAmount.toLocaleString()} set. Current bid is $${clampedCurrentBid.toLocaleString()} — your proxy will bid up to your max if others bid.`
+    };
+  }, [bidStore]);
 
   const getCurrentBid = useCallback((vehicleId: string, originalBid: number): number => {
-    return bidStore.get(vehicleId)?.amount ?? originalBid;
-  }, []);
+    return bidStore.get(vehicleId)?.currentBid ?? originalBid;
+  }, [bidStore]);
 
   const getBidCount = useCallback((vehicleId: string, originalCount: number): number => {
-    return bidStore.get(vehicleId)?.count ?? originalCount;
-  }, []);
+    return bidStore.get(vehicleId)?.bidCount ?? originalCount;
+  }, [bidStore]);
 
-  return { bids, placeBid, getCurrentBid, getBidCount };
+  const getUserMaxBid = useCallback((vehicleId: string): number | null => {
+    return bidStore.get(vehicleId)?.maxBid ?? null;
+  }, [bidStore]);
+
+  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid };
 }

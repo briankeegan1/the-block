@@ -19,7 +19,7 @@ interface Props {
 export default function VehicleDetailPage({ watchlist }: Props) {
   const { id } = useParams<{ id: string }>();
   const vehicle = getVehicleById(id!);
-  const { placeBid, getCurrentBid, getBidCount } = useBids();
+  const { placeBid, getCurrentBid, getBidCount, getUserMaxBid } = useBids();
   const [activeImage, setActiveImage] = useState(0);
 
   if (!vehicle) {
@@ -35,6 +35,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
 
   const currentBid = getCurrentBid(vehicle.id, vehicle.current_bid);
   const bidCount = getBidCount(vehicle.id, vehicle.bid_count);
+  const userMaxBid = getUserMaxBid(vehicle.id);
   const isWatched = watchlist.isWatched(vehicle.id);
 
   const handleBid = (amount: number) => {
@@ -178,6 +179,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
               vehicle={vehicle}
               currentBid={currentBid}
               bidCount={bidCount}
+              userMaxBid={userMaxBid}
               onPlaceBid={handleBid}
             />
           </div>
