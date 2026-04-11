@@ -238,6 +238,8 @@ export default function InventoryPage({ watchlist, bids }: Props) {
                         bidCount={getBidCount(v.id, v.bid_count)}
                         isWatched={watchlist.isWatched(v.id)}
                         onToggleWatch={watchlist.toggle}
+                        userMaxBid={getUserMaxBid(v.id)}
+                        purchased={isPurchased(v.id)}
                       />
                     ))}
                   </div>

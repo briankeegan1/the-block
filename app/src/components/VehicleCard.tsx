@@ -41,7 +41,13 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <AuctionBadge auctionStart={vehicle.auction_start} />
+            {purchased ? (
+              <span className="inline-flex items-center gap-1 bg-emerald-600 text-white font-semibold rounded-full text-xs px-2.5 py-0.5">
+                Sold
+              </span>
+            ) : (
+              <AuctionBadge auctionStart={vehicle.auction_start} />
+            )}
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${
               vehicle.title_status === 'clean' ? 'bg-emerald-100 text-emerald-800' :
               vehicle.title_status === 'rebuilt' ? 'bg-yellow-100 text-yellow-800' :

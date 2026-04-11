@@ -39,6 +39,7 @@ export default function VehicleDetailPage({ watchlist, bids }: Props) {
   const currentBid = getCurrentBid(vehicle.id, vehicle.current_bid);
   const bidCount = getBidCount(vehicle.id, vehicle.bid_count);
   const userMaxBid = getUserMaxBid(vehicle.id);
+  const purchased = isPurchased(vehicle.id);
   const isWatched = watchlist.isWatched(vehicle.id);
 
   const handleBid = (amount: number) => {
@@ -65,7 +66,13 @@ export default function VehicleDetailPage({ watchlist, bids }: Props) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 left-3">
-                  <AuctionBadge auctionStart={vehicle.auction_start} size="md" />
+                  {purchased ? (
+                    <span className="inline-flex items-center gap-1 bg-emerald-600 text-white font-semibold rounded-full text-sm px-3 py-1">
+                      Sold
+                    </span>
+                  ) : (
+                    <AuctionBadge auctionStart={vehicle.auction_start} size="md" />
+                  )}
                 </div>
               </div>
               {vehicle.images.length > 1 && (
@@ -183,7 +190,7 @@ export default function VehicleDetailPage({ watchlist, bids }: Props) {
               currentBid={currentBid}
               bidCount={bidCount}
               userMaxBid={userMaxBid}
-              purchased={isPurchased(vehicle.id)}
+              purchased={purchased}
               onPlaceBid={handleBid}
               onBuyNow={() => buyNow(vehicle.id, vehicle.buy_now_price!, vehicle.bid_count)}
             />
