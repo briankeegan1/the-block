@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Gauge, Fuel, Settings, Car, Calendar, AlertTriangle, Store, Shield, Heart } from 'lucide-react';
 import { getVehicleById } from '../hooks/useVehicles';
-import { useBids } from '../hooks/useBids';
+import type { useBids } from '../hooks/useBids';
 import BidPanel from '../components/BidPanel';
 import AuctionBadge from '../components/AuctionBadge';
 import { formatCurrency, formatKm, conditionLabel, conditionColor } from '../lib/format';
@@ -14,12 +14,13 @@ interface Props {
     count: number;
     watchlist: Set<string>;
   };
+  bids: ReturnType<typeof useBids>;
 }
 
-export default function VehicleDetailPage({ watchlist }: Props) {
+export default function VehicleDetailPage({ watchlist, bids }: Props) {
   const { id } = useParams<{ id: string }>();
   const vehicle = getVehicleById(id!);
-  const { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased } = useBids();
+  const { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased } = bids;
   const location = useLocation();
   const backTo = (location.state as { from?: string })?.from || '/';
   const [activeImage, setActiveImage] = useState(0);

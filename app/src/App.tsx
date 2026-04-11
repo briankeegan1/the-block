@@ -15,7 +15,7 @@ export default function App() {
         <Header watchlistCount={watchlist.count} myBidsCount={bids.activeBidCount} />
         <Routes>
           <Route path="/" element={<InventoryPage watchlist={watchlist} bids={bids} />} />
-          <Route path="/vehicle/:id" element={<VehicleDetailPage watchlist={watchlist} />} />
+          <Route path="/vehicle/:id" element={<VehicleDetailPage watchlist={watchlist} bids={bids} />} />
         </Routes>
       </div>
     </BrowserRouter>
