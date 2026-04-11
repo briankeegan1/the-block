@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { getAuctionStatus } from '../lib/format';
+import vehiclesData from '../data/vehicles.json';
 
 const STORAGE_KEY = 'the-block-bids';
 
@@ -128,7 +130,18 @@ export function useBids() {
       .map(([id]) => id);
   }, [bidStore]);
 
-  const activeBidCount = [...bidStore.values()].filter(s => s.maxBid > 0).length;
+  const activeBidCount = useMemo(() => {
+    let count = 0;
+    for (const [id, state] of bidStore) {
+      if (state.maxBid > 0 && !state.purchased) {
+        const vehicle = vehiclesData.find(v => v.id === id);
+        if (vehicle && getAuctionStatus(vehicle.auction_start) === 'live') {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [bidStore]);
 
   const purchasedIds = useMemo(() => {
     const ids = new Set<string>();
