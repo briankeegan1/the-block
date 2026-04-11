@@ -66,13 +66,7 @@ export default function VehicleDetailPage({ watchlist, bids }: Props) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 left-3">
-                  {purchased ? (
-                    <span className="inline-flex items-center justify-center bg-emerald-600 text-white font-semibold rounded-full text-sm px-3 py-1">
-                      Sold
-                    </span>
-                  ) : (
-                    <AuctionBadge auctionStart={vehicle.auction_start} size="md" />
-                  )}
+                  <AuctionBadge auctionStart={vehicle.auction_start} size="md" purchased={purchased} />
                 </div>
               </div>
               {vehicle.images.length > 1 && (

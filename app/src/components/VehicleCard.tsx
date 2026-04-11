@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Gauge, Users, Heart, Trophy } from 'lucide-react';
+import { MapPin, Gauge, Users, Heart } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { formatCurrency, formatKm, conditionLabel, conditionColor, getAuctionStatus } from '../lib/format';
 import AuctionBadge from './AuctionBadge';
@@ -14,7 +14,7 @@ interface Props {
   purchased?: boolean;
 }
 
-export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch, userMaxBid, purchased }: Props) {
+export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch, purchased }: Props) {
   const price = currentBid || vehicle.starting_bid;
   const auctionStatus = getAuctionStatus(vehicle.auction_start);
   const location = useLocation();
@@ -41,13 +41,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {purchased ? (
-              <span className="inline-flex items-center justify-center bg-emerald-600 text-white font-semibold rounded-full text-xs px-2.5 py-0.5">
-                Sold
-              </span>
-            ) : (
-              <AuctionBadge auctionStart={vehicle.auction_start} />
-            )}
+            <AuctionBadge auctionStart={vehicle.auction_start} purchased={purchased} />
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${
               vehicle.title_status === 'clean' ? 'bg-emerald-100 text-emerald-800' :
               vehicle.title_status === 'rebuilt' ? 'bg-yellow-100 text-yellow-800' :
@@ -59,18 +53,6 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
           {vehicle.buy_now_price && auctionStatus === 'live' && !purchased && (
             <span className="absolute bottom-2 right-2 bg-accent text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm">
               Buy Now Available
-            </span>
-          )}
-          {purchased && (
-            <span className="absolute bottom-2 right-2 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-              <Trophy className="w-3 h-3" />
-              Purchased
-            </span>
-          )}
-          {!purchased && auctionStatus === 'ended' && userMaxBid != null && (
-            <span className="absolute bottom-2 right-2 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-              <Trophy className="w-3 h-3" />
-              Won
             </span>
           )}
         </div>

@@ -4,10 +4,11 @@ import { getAuctionStatus, getTimeRemaining } from '../lib/format';
 interface Props {
   auctionStart: string;
   size?: 'sm' | 'md';
+  purchased?: boolean;
 }
 
-export default function AuctionBadge({ auctionStart, size = 'sm' }: Props) {
-  const status = getAuctionStatus(auctionStart);
+export default function AuctionBadge({ auctionStart, size = 'sm', purchased }: Props) {
+  const status = purchased ? 'ended' : getAuctionStatus(auctionStart);
   const timeLeft = getTimeRemaining(auctionStart);
 
   if (status === 'live') {
