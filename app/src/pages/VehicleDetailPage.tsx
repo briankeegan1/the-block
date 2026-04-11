@@ -67,7 +67,7 @@ export default function VehicleDetailPage({ watchlist, bids }: Props) {
                 />
                 <div className="absolute top-3 left-3">
                   {purchased ? (
-                    <span className="inline-flex items-center gap-1 bg-emerald-600 text-white font-semibold rounded-full text-sm px-3 py-1">
+                    <span className="inline-flex items-center justify-center bg-emerald-600 text-white font-semibold rounded-full text-sm px-3 py-1">
                       Sold
                     </span>
                   ) : (

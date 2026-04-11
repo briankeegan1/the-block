@@ -42,7 +42,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {purchased ? (
-              <span className="inline-flex items-center gap-1 bg-emerald-600 text-white font-semibold rounded-full text-xs px-2.5 py-0.5">
+              <span className="inline-flex items-center justify-center bg-emerald-600 text-white font-semibold rounded-full text-xs px-2.5 py-0.5">
                 Sold
               </span>
             ) : (

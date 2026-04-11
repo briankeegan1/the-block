@@ -70,17 +70,18 @@ export function getActiveFilterCount(filters: Filters): number {
   ].reduce((a, b) => a + b, 0);
 }
 
-// Priority: live=0, upcoming=1, ended=2
-function statusPriority(auctionStart: string): number {
-  const s = getAuctionStatus(auctionStart);
+function statusPriorityFromStatus(s: string): number {
   if (s === 'live') return 0;
   if (s === 'upcoming') return 1;
   return 2;
 }
 
-export function useFilteredVehicles(filters: Filters) {
+export function useFilteredVehicles(filters: Filters, purchasedIds?: Set<string>) {
   return useMemo(() => {
     let result = [...vehicles];
+
+    const getEffectiveStatus = (v: Vehicle) =>
+      purchasedIds?.has(v.id) ? 'ended' : getAuctionStatus(v.auction_start);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -95,7 +96,7 @@ export function useFilteredVehicles(filters: Filters) {
     if (filters.fuelTypes.length) result = result.filter(v => filters.fuelTypes.includes(v.fuel_type));
     if (filters.provinces.length) result = result.filter(v => filters.provinces.includes(v.province));
     if (filters.titleStatuses.length) result = result.filter(v => filters.titleStatuses.includes(v.title_status));
-    if (filters.auctionStatuses.length) result = result.filter(v => filters.auctionStatuses.includes(getAuctionStatus(v.auction_start)));
+    if (filters.auctionStatuses.length) result = result.filter(v => filters.auctionStatuses.includes(getEffectiveStatus(v)));
     if (filters.conditions.length) result = result.filter(v => filters.conditions.includes(conditionLabel(v.condition_grade)));
     if (filters.buyNowOnly) result = result.filter(v => v.buy_now_price !== null);
     if (filters.minPrice) result = result.filter(v => (v.current_bid || v.starting_bid) >= Number(filters.minPrice));
@@ -105,8 +106,8 @@ export function useFilteredVehicles(filters: Filters) {
       case 'recommended':
         // Live first (ending soonest), then upcoming, then ended
         result.sort((a, b) => {
-          const pa = statusPriority(a.auction_start);
-          const pb = statusPriority(b.auction_start);
+          const pa = statusPriorityFromStatus(getEffectiveStatus(a));
+          const pb = statusPriorityFromStatus(getEffectiveStatus(b));
           if (pa !== pb) return pa - pb;
           // Within same status, sort by auction_start ascending (ending soonest first)
           return new Date(a.auction_start).getTime() - new Date(b.auction_start).getTime();
@@ -115,16 +116,16 @@ export function useFilteredVehicles(filters: Filters) {
       case 'ending-soon':
         // Only makes sense for live — still group by status first
         result.sort((a, b) => {
-          const pa = statusPriority(a.auction_start);
-          const pb = statusPriority(b.auction_start);
+          const pa = statusPriorityFromStatus(getEffectiveStatus(a));
+          const pb = statusPriorityFromStatus(getEffectiveStatus(b));
           if (pa !== pb) return pa - pb;
           return new Date(a.auction_start).getTime() - new Date(b.auction_start).getTime();
         });
         break;
       case 'newly-listed':
         result.sort((a, b) => {
-          const pa = statusPriority(a.auction_start);
-          const pb = statusPriority(b.auction_start);
+          const pa = statusPriorityFromStatus(getEffectiveStatus(a));
+          const pb = statusPriorityFromStatus(getEffectiveStatus(b));
           if (pa !== pb) return pa - pb;
           return new Date(b.auction_start).getTime() - new Date(a.auction_start).getTime();
         });
@@ -150,7 +151,7 @@ export function useFilteredVehicles(filters: Filters) {
     }
 
     return result;
-  }, [filters]);
+  }, [filters, purchasedIds]);
 }
 
 export function getVehicleById(id: string): Vehicle | undefined {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 const STORAGE_KEY = 'the-block-bids';
 
@@ -130,5 +130,13 @@ export function useBids() {
 
   const activeBidCount = [...bidStore.values()].filter(s => s.maxBid > 0).length;
 
-  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased, getActiveBidIds, activeBidCount };
+  const purchasedIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const [id, state] of bidStore) {
+      if (state.purchased) ids.add(id);
+    }
+    return ids;
+  }, [bidStore]);
+
+  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased, getActiveBidIds, activeBidCount, purchasedIds };
 }

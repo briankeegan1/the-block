@@ -23,8 +23,8 @@ interface Props {
 
 export default function InventoryPage({ watchlist, bids }: Props) {
   const { filters, setFilters, page, setPage, isWatchlist, setWatchlist, isMyBids, setMyBids } = useFilterParams();
-  const vehicles = useFilteredVehicles(filters);
-  const { getCurrentBid, getBidCount, getUserMaxBid, isPurchased } = bids;
+  const { getCurrentBid, getBidCount, getUserMaxBid, isPurchased, purchasedIds } = bids;
+  const vehicles = useFilteredVehicles(filters, purchasedIds);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [specialSort, setSpecialSort] = useState('status');
 
