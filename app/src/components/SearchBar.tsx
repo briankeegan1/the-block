@@ -50,7 +50,9 @@ export default function SearchBar({ filters, onChange, resultCount, onToggleMobi
             onChange={e => onChange({ ...filters, sortBy: e.target.value })}
             className="px-4 py-2 text-sm border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-accent/40 bg-white font-medium"
           >
+            <option value="recommended">Recommended</option>
             <option value="ending-soon">Ending Soon</option>
+            <option value="newly-listed">Newly Listed</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
             <option value="year-new">Year: Newest</option>

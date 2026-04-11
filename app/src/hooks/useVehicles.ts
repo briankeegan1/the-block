@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import vehiclesData from '../data/vehicles.json';
 import type { Vehicle } from '../types/vehicle';
+import { getAuctionStatus } from '../lib/format';
 
 const vehicles = vehiclesData as Vehicle[];
 
@@ -13,6 +14,7 @@ export interface Filters {
   fuelTypes: string[];
   provinces: string[];
   titleStatuses: string[];
+  auctionStatuses: string[];
   minPrice: string;
   maxPrice: string;
   sortBy: string;
@@ -27,9 +29,10 @@ export const defaultFilters: Filters = {
   fuelTypes: [],
   provinces: [],
   titleStatuses: [],
+  auctionStatuses: [],
   minPrice: '',
   maxPrice: '',
-  sortBy: 'ending-soon',
+  sortBy: 'recommended',
 };
 
 export function getFilterOptions() {
@@ -41,6 +44,7 @@ export function getFilterOptions() {
     fuelTypes: [...new Set(vehicles.map(v => v.fuel_type))].sort(),
     provinces: [...new Set(vehicles.map(v => v.province))].sort(),
     titleStatuses: [...new Set(vehicles.map(v => v.title_status))].sort(),
+    auctionStatuses: ['live', 'upcoming', 'ended'] as string[],
   };
 }
 
@@ -53,9 +57,18 @@ export function getActiveFilterCount(filters: Filters): number {
     filters.fuelTypes.length,
     filters.provinces.length,
     filters.titleStatuses.length,
+    filters.auctionStatuses.length,
     filters.minPrice ? 1 : 0,
     filters.maxPrice ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
+}
+
+// Priority: live=0, upcoming=1, ended=2
+function statusPriority(auctionStart: string): number {
+  const s = getAuctionStatus(auctionStart);
+  if (s === 'live') return 0;
+  if (s === 'upcoming') return 1;
+  return 2;
 }
 
 export function useFilteredVehicles(filters: Filters) {
@@ -75,10 +88,38 @@ export function useFilteredVehicles(filters: Filters) {
     if (filters.fuelTypes.length) result = result.filter(v => filters.fuelTypes.includes(v.fuel_type));
     if (filters.provinces.length) result = result.filter(v => filters.provinces.includes(v.province));
     if (filters.titleStatuses.length) result = result.filter(v => filters.titleStatuses.includes(v.title_status));
+    if (filters.auctionStatuses.length) result = result.filter(v => filters.auctionStatuses.includes(getAuctionStatus(v.auction_start)));
     if (filters.minPrice) result = result.filter(v => (v.current_bid || v.starting_bid) >= Number(filters.minPrice));
     if (filters.maxPrice) result = result.filter(v => (v.current_bid || v.starting_bid) <= Number(filters.maxPrice));
 
     switch (filters.sortBy) {
+      case 'recommended':
+        // Live first (ending soonest), then upcoming, then ended
+        result.sort((a, b) => {
+          const pa = statusPriority(a.auction_start);
+          const pb = statusPriority(b.auction_start);
+          if (pa !== pb) return pa - pb;
+          // Within same status, sort by auction_start ascending (ending soonest first)
+          return new Date(a.auction_start).getTime() - new Date(b.auction_start).getTime();
+        });
+        break;
+      case 'ending-soon':
+        // Only makes sense for live — still group by status first
+        result.sort((a, b) => {
+          const pa = statusPriority(a.auction_start);
+          const pb = statusPriority(b.auction_start);
+          if (pa !== pb) return pa - pb;
+          return new Date(a.auction_start).getTime() - new Date(b.auction_start).getTime();
+        });
+        break;
+      case 'newly-listed':
+        result.sort((a, b) => {
+          const pa = statusPriority(a.auction_start);
+          const pb = statusPriority(b.auction_start);
+          if (pa !== pb) return pa - pb;
+          return new Date(b.auction_start).getTime() - new Date(a.auction_start).getTime();
+        });
+        break;
       case 'price-low':
         result.sort((a, b) => (a.current_bid || a.starting_bid) - (b.current_bid || b.starting_bid));
         break;
@@ -93,9 +134,6 @@ export function useFilteredVehicles(filters: Filters) {
         break;
       case 'mileage-low':
         result.sort((a, b) => a.odometer_km - b.odometer_km);
-        break;
-      case 'ending-soon':
-        result.sort((a, b) => new Date(a.auction_start).getTime() - new Date(b.auction_start).getTime());
         break;
       case 'most-bids':
         result.sort((a, b) => b.bid_count - a.bid_count);
