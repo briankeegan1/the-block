@@ -130,13 +130,24 @@ export default function BidPanel({ vehicle, currentBid, bidCount, userMaxBid, pu
           </div>
         )}
 
-        {/* Ended auction — won */}
-        {auctionStatus === 'ended' && !purchased && userMaxBid !== null && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+        {/* Ended auction — won (reserve met) */}
+        {auctionStatus === 'ended' && !purchased && userMaxBid !== null && userMaxBid >= vehicle.reserve_price && (
+          <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-center">
             <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-            <p className="text-sm font-bold text-emerald-800">You Won This Auction!</p>
-            <p className="text-xs text-emerald-600 mt-1">
+            <p className="text-sm font-bold text-amber-800">You Won This Auction!</p>
+            <p className="text-xs text-amber-700 mt-1">
               Winning bid: {formatCurrency(userMaxBid)}
+            </p>
+          </div>
+        )}
+
+        {/* Ended auction — lost (reserve not met) */}
+        {auctionStatus === 'ended' && !purchased && userMaxBid !== null && userMaxBid < vehicle.reserve_price && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center">
+            <Ban className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-sm font-bold text-red-800">Reserve Not Met</p>
+            <p className="text-xs text-red-600 mt-1">
+              Your max bid of {formatCurrency(userMaxBid)} did not meet the seller's reserve price.
             </p>
           </div>
         )}
