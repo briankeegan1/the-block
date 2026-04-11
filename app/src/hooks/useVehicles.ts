@@ -6,13 +6,13 @@ const vehicles = vehiclesData as Vehicle[];
 
 export interface Filters {
   search: string;
-  make: string;
-  bodyStyle: string;
-  transmission: string;
-  drivetrain: string;
-  fuelType: string;
-  province: string;
-  titleStatus: string;
+  makes: string[];
+  bodyStyles: string[];
+  transmissions: string[];
+  drivetrains: string[];
+  fuelTypes: string[];
+  provinces: string[];
+  titleStatuses: string[];
   minPrice: string;
   maxPrice: string;
   sortBy: string;
@@ -20,13 +20,13 @@ export interface Filters {
 
 export const defaultFilters: Filters = {
   search: '',
-  make: '',
-  bodyStyle: '',
-  transmission: '',
-  drivetrain: '',
-  fuelType: '',
-  province: '',
-  titleStatus: '',
+  makes: [],
+  bodyStyles: [],
+  transmissions: [],
+  drivetrains: [],
+  fuelTypes: [],
+  provinces: [],
+  titleStatuses: [],
   minPrice: '',
   maxPrice: '',
   sortBy: 'ending-soon',
@@ -44,6 +44,20 @@ export function getFilterOptions() {
   };
 }
 
+export function getActiveFilterCount(filters: Filters): number {
+  return [
+    filters.makes.length,
+    filters.bodyStyles.length,
+    filters.transmissions.length,
+    filters.drivetrains.length,
+    filters.fuelTypes.length,
+    filters.provinces.length,
+    filters.titleStatuses.length,
+    filters.minPrice ? 1 : 0,
+    filters.maxPrice ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+}
+
 export function useFilteredVehicles(filters: Filters) {
   return useMemo(() => {
     let result = [...vehicles];
@@ -54,13 +68,13 @@ export function useFilteredVehicles(filters: Filters) {
         `${v.year} ${v.make} ${v.model} ${v.trim} ${v.lot} ${v.vin}`.toLowerCase().includes(q)
       );
     }
-    if (filters.make) result = result.filter(v => v.make === filters.make);
-    if (filters.bodyStyle) result = result.filter(v => v.body_style === filters.bodyStyle);
-    if (filters.transmission) result = result.filter(v => v.transmission === filters.transmission);
-    if (filters.drivetrain) result = result.filter(v => v.drivetrain === filters.drivetrain);
-    if (filters.fuelType) result = result.filter(v => v.fuel_type === filters.fuelType);
-    if (filters.province) result = result.filter(v => v.province === filters.province);
-    if (filters.titleStatus) result = result.filter(v => v.title_status === filters.titleStatus);
+    if (filters.makes.length) result = result.filter(v => filters.makes.includes(v.make));
+    if (filters.bodyStyles.length) result = result.filter(v => filters.bodyStyles.includes(v.body_style));
+    if (filters.transmissions.length) result = result.filter(v => filters.transmissions.includes(v.transmission));
+    if (filters.drivetrains.length) result = result.filter(v => filters.drivetrains.includes(v.drivetrain));
+    if (filters.fuelTypes.length) result = result.filter(v => filters.fuelTypes.includes(v.fuel_type));
+    if (filters.provinces.length) result = result.filter(v => filters.provinces.includes(v.province));
+    if (filters.titleStatuses.length) result = result.filter(v => filters.titleStatuses.includes(v.title_status));
     if (filters.minPrice) result = result.filter(v => (v.current_bid || v.starting_bid) >= Number(filters.minPrice));
     if (filters.maxPrice) result = result.filter(v => (v.current_bid || v.starting_bid) <= Number(filters.maxPrice));
 

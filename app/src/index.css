@@ -48,6 +48,15 @@ body {
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.25s ease-out;
+}
+
 /* Card hover lift */
 .card-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
