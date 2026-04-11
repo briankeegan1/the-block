@@ -11,15 +11,24 @@ export function formatKm(km: number): string {
   return new Intl.NumberFormat('en-CA').format(km) + ' km';
 }
 
-export function getAuctionStatus(auctionStart: string): 'upcoming' | 'live' | 'ended' {
+// Compute the day offset ONCE at app load so auctions don't reset mid-session.
+// The dataset centers around 2026-04-03. We shift all auction times forward
+// by the number of days since then so there's always a realistic mix.
+const APP_LOAD_TIME = new Date();
+const DAYS_OFFSET = Math.floor(
+  (APP_LOAD_TIME.getTime() - new Date('2026-04-03T12:00:00').getTime()) / (1000 * 60 * 60 * 24)
+);
+
+function adjustedTimes(auctionStart: string) {
   const start = new Date(auctionStart);
-  const now = new Date();
-  // Normalize: treat auction dates as relative to now for prototype
-  // Auctions last 24 hours from their start time
-  // Shift all auction times to be relative to today for demo purposes
-  const daysSinceData = Math.floor((now.getTime() - new Date('2026-04-03T12:00:00').getTime()) / (1000 * 60 * 60 * 24));
-  const adjustedStart = new Date(start.getTime() + daysSinceData * 24 * 60 * 60 * 1000);
+  const adjustedStart = new Date(start.getTime() + DAYS_OFFSET * 24 * 60 * 60 * 1000);
   const adjustedEnd = new Date(adjustedStart.getTime() + 24 * 60 * 60 * 1000);
+  return { adjustedStart, adjustedEnd };
+}
+
+export function getAuctionStatus(auctionStart: string): 'upcoming' | 'live' | 'ended' {
+  const now = new Date();
+  const { adjustedStart, adjustedEnd } = adjustedTimes(auctionStart);
 
   if (now < adjustedStart) return 'upcoming';
   if (now > adjustedEnd) return 'ended';
@@ -27,11 +36,8 @@ export function getAuctionStatus(auctionStart: string): 'upcoming' | 'live' | 'e
 }
 
 export function getTimeRemaining(auctionStart: string): string {
-  const start = new Date(auctionStart);
   const now = new Date();
-  const daysSinceData = Math.floor((now.getTime() - new Date('2026-04-03T12:00:00').getTime()) / (1000 * 60 * 60 * 24));
-  const adjustedStart = new Date(start.getTime() + daysSinceData * 24 * 60 * 60 * 1000);
-  const adjustedEnd = new Date(adjustedStart.getTime() + 24 * 60 * 60 * 1000);
+  const { adjustedEnd } = adjustedTimes(auctionStart);
 
   const diff = adjustedEnd.getTime() - now.getTime();
   if (diff <= 0) return 'Ended';
