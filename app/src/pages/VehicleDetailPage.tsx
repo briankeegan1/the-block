@@ -19,7 +19,7 @@ interface Props {
 export default function VehicleDetailPage({ watchlist }: Props) {
   const { id } = useParams<{ id: string }>();
   const vehicle = getVehicleById(id!);
-  const { placeBid, getCurrentBid, getBidCount, getUserMaxBid } = useBids();
+  const { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased } = useBids();
   const [activeImage, setActiveImage] = useState(0);
 
   if (!vehicle) {
@@ -39,7 +39,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
   const isWatched = watchlist.isWatched(vehicle.id);
 
   const handleBid = (amount: number) => {
-    return placeBid(vehicle.id, amount, vehicle.current_bid, vehicle.bid_count);
+    return placeBid(vehicle.id, amount, vehicle.current_bid, vehicle.bid_count, vehicle.starting_bid);
   };
 
   return (
@@ -180,7 +180,9 @@ export default function VehicleDetailPage({ watchlist }: Props) {
               currentBid={currentBid}
               bidCount={bidCount}
               userMaxBid={userMaxBid}
+              purchased={isPurchased(vehicle.id)}
               onPlaceBid={handleBid}
+              onBuyNow={() => buyNow(vehicle.id, vehicle.buy_now_price!, vehicle.bid_count)}
             />
           </div>
         </div>
@@ -195,7 +197,7 @@ function Spec({ icon: Icon, label, value }: { icon: React.ComponentType<{ classN
       <Icon className="w-4 h-4 text-accent/60 flex-shrink-0" />
       <div className="min-w-0">
         <p className="text-xs text-muted font-medium">{label}</p>
-        <p className="text-sm text-slate-700 font-medium capitalize truncate">{value}</p>
+        <p className="text-sm text-slate-700 font-medium capitalize truncate" title={value}>{value}</p>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Gauge, Users, Heart } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
-import { formatCurrency, formatKm, conditionLabel, conditionColor } from '../lib/format';
+import { formatCurrency, formatKm, conditionLabel, conditionColor, getAuctionStatus } from '../lib/format';
 import AuctionBadge from './AuctionBadge';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 
 export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch }: Props) {
   const price = currentBid || vehicle.starting_bid;
+  const auctionStatus = getAuctionStatus(vehicle.auction_start);
 
   return (
     <div className="group bg-white rounded-xl border border-slate-200 overflow-hidden card-hover relative animate-fade-in">
@@ -46,7 +47,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
               {vehicle.title_status.charAt(0).toUpperCase() + vehicle.title_status.slice(1)}
             </span>
           </div>
-          {vehicle.buy_now_price && (
+          {vehicle.buy_now_price && auctionStatus === 'live' && (
             <span className="absolute bottom-2 right-2 bg-accent text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm">
               Buy Now Available
             </span>
@@ -56,10 +57,10 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="font-semibold text-navy truncate">
+              <h3 className="font-semibold text-navy truncate" title={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}>
                 {vehicle.year} {vehicle.make} {vehicle.model}
               </h3>
-              <p className="text-sm text-slate-500 truncate">{vehicle.trim}</p>
+              <p className="text-sm text-slate-500 truncate" title={vehicle.trim}>{vehicle.trim}</p>
             </div>
             <span className="text-xs text-muted whitespace-nowrap font-medium">Lot {vehicle.lot}</span>
           </div>
@@ -83,7 +84,12 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
 
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-end justify-between">
             <div>
-              <p className="text-xs text-muted">{bidCount > 0 ? 'Current Bid' : 'Starting Bid'}</p>
+              <p className="text-xs text-muted">
+                {auctionStatus === 'ended'
+                  ? 'Final Bid'
+                  : bidCount > 0 ? 'Current Bid' : 'Starting Bid'
+                }
+              </p>
               <p className="text-lg font-bold text-navy">{formatCurrency(price)}</p>
             </div>
             {bidCount > 0 && (

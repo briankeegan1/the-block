@@ -3,9 +3,10 @@ import { useState, useCallback, useEffect } from 'react';
 const STORAGE_KEY = 'the-block-bids';
 
 interface BidState {
-  maxBid: number;       // User's secret maximum bid
-  currentBid: number;   // The visible "current bid" (proxy-elevated)
-  bidCount: number;     // Total bid count including proxy bids
+  maxBid: number;       // User's private maximum bid
+  currentBid: number;   // Visible current bid (one increment above prior second-highest)
+  bidCount: number;     // Only increments once when user first places a bid
+  purchased?: boolean;  // True if user used Buy Now
 }
 
 function loadBids(): Map<string, BidState> {
@@ -38,18 +39,18 @@ export function useBids() {
     vehicleId: string,
     maxBidAmount: number,
     originalBid: number,
-    originalCount: number
+    originalCount: number,
+    startingBid: number
   ) => {
     const existing = bidStore.get(vehicleId);
-    const currentBid = existing?.currentBid ?? originalBid;
-    const currentCount = existing?.bidCount ?? originalCount;
     const existingMax = existing?.maxBid ?? 0;
 
-    const minBid = currentBid + getMinIncrement(currentBid);
-
-    // Can't bid below the minimum
-    if (maxBidAmount < minBid) {
-      return { success: false, message: `Minimum bid is $${minBid.toLocaleString()}` };
+    // Floor is whichever is higher: starting bid, or current bid + increment
+    const floor = originalBid > 0
+      ? originalBid + getMinIncrement(originalBid)
+      : startingBid;
+    if (maxBidAmount < floor) {
+      return { success: false, message: `Minimum bid is $${floor.toLocaleString()}` };
     }
 
     // If user already has a max bid, they can only increase it
@@ -60,35 +61,35 @@ export function useBids() {
       };
     }
 
-    // Proxy bidding logic:
-    // The "current bid" shown publicly is the minimum needed to be winning.
-    // If there were other bidders, the price would be driven up to just above
-    // the second-highest bid. Since we're single-user, the current bid advances
-    // by one increment above the previous bid.
-    const newCurrentBid = currentBid === 0
-      ? Math.min(maxBidAmount, originalBid + getMinIncrement(originalBid))
-      : currentBid + getMinIncrement(currentBid);
+    const isFirstBid = !existing;
 
-    // Current bid can't exceed the user's max
-    const clampedCurrentBid = Math.min(newCurrentBid, maxBidAmount);
+    // eBay model: current bid = one increment above the second-highest bidder.
+    // The "second-highest bidder" is the original dataset bid (the last real bid
+    // before we showed up). This never changes — no other users are bidding.
+    // For vehicles with no bids, current bid starts at the starting bid.
+    const currentBid = existing?.currentBid
+      ?? (originalBid > 0 ? originalBid + getMinIncrement(originalBid) : startingBid);
 
     setBidStore(prev => {
       const next = new Map(prev);
       next.set(vehicleId, {
         maxBid: maxBidAmount,
-        currentBid: clampedCurrentBid,
-        bidCount: (currentCount ?? originalCount) + 1,
+        currentBid,
+        bidCount: isFirstBid ? originalCount + 1 : (existing?.bidCount ?? originalCount),
       });
       return next;
     });
 
-    const isExactBid = maxBidAmount === clampedCurrentBid;
+    if (isFirstBid) {
+      return {
+        success: true,
+        message: `Bid placed! Current bid is $${currentBid.toLocaleString()}. Your max bid of $${maxBidAmount.toLocaleString()} will protect you if others bid.`
+      };
+    }
 
     return {
       success: true,
-      message: isExactBid
-        ? `Bid of $${maxBidAmount.toLocaleString()} placed. You're the high bidder!`
-        : `Max bid of $${maxBidAmount.toLocaleString()} set. Current bid is $${clampedCurrentBid.toLocaleString()} — your proxy will bid up to your max if others bid.`
+      message: `Max bid increased to $${maxBidAmount.toLocaleString()}. Current bid unchanged at $${currentBid.toLocaleString()}.`
     };
   }, [bidStore]);
 
@@ -104,5 +105,22 @@ export function useBids() {
     return bidStore.get(vehicleId)?.maxBid ?? null;
   }, [bidStore]);
 
-  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid };
+  const buyNow = useCallback((vehicleId: string, buyNowPrice: number, originalCount: number) => {
+    setBidStore(prev => {
+      const next = new Map(prev);
+      next.set(vehicleId, {
+        maxBid: buyNowPrice,
+        currentBid: buyNowPrice,
+        bidCount: originalCount + 1,
+        purchased: true,
+      });
+      return next;
+    });
+  }, []);
+
+  const isPurchased = useCallback((vehicleId: string): boolean => {
+    return bidStore.get(vehicleId)?.purchased === true;
+  }, [bidStore]);
+
+  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased };
 }
