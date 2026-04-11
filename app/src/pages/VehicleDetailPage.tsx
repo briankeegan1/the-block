@@ -25,8 +25,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
   if (!vehicle) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <p className="text-lg text-slate-500">Vehicle not found.</p>
-        <Link to="/" className="text-amber-600 hover:text-amber-700 text-sm font-medium mt-3 inline-block">
+        <p className="text-lg text-slate-500 font-medium">Vehicle not found.</p>
+        <Link to="/" className="text-accent hover:text-accent-hover text-sm font-semibold mt-3 inline-block transition">
           Back to inventory
         </Link>
       </div>
@@ -42,19 +42,19 @@ export default function VehicleDetailPage({ watchlist }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-surface">
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4 transition">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-accent mb-4 transition font-medium">
           <ArrowLeft className="w-4 h-4" />
           Back to inventory
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up">
           {/* Left: Images + Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image gallery */}
-            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-              <div className="aspect-[16/10] bg-slate-100 relative">
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="aspect-[16/10] bg-surface relative">
                 <img
                   src={vehicle.images[activeImage]}
                   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} photo ${activeImage + 1}`}
@@ -70,8 +70,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`w-20 h-15 rounded-md overflow-hidden flex-shrink-0 border-2 transition ${
-                        i === activeImage ? 'border-amber-400' : 'border-transparent hover:border-slate-300'
+                      className={`w-20 h-15 rounded-lg overflow-hidden flex-shrink-0 border-2 transition ${
+                        i === activeImage ? 'border-accent' : 'border-transparent hover:border-slate-300'
                       }`}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover" />
@@ -82,10 +82,10 @@ export default function VehicleDetailPage({ watchlist }: Props) {
             </div>
 
             {/* Title + overview */}
-            <div className="bg-white rounded-lg border border-slate-200 p-5">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">
+                  <h1 className="text-2xl font-bold text-navy">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h1>
                   <p className="text-slate-500">{vehicle.trim}</p>
@@ -93,7 +93,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => watchlist.toggle(vehicle.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition ${
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-sm font-semibold transition ${
                       isWatched
                         ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
                         : 'border-slate-200 text-slate-500 hover:border-red-200 hover:text-red-500'
@@ -102,10 +102,10 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                     <Heart className={`w-4 h-4 ${isWatched ? 'fill-current' : ''}`} />
                     {isWatched ? 'Watching' : 'Watch'}
                   </button>
-                  <span className="text-sm text-slate-400">Lot {vehicle.lot}</span>
+                  <span className="text-sm text-muted font-medium">Lot {vehicle.lot}</span>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 mt-1">VIN: {vehicle.vin}</p>
+              <p className="text-xs text-muted mt-1 font-medium">VIN: {vehicle.vin}</p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
                 <Spec icon={Gauge} label="Odometer" value={formatKm(vehicle.odometer_km)} />
@@ -121,8 +121,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
 
             {/* Vehicle details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg border border-slate-200 p-5">
-                <h2 className="font-semibold text-slate-900 mb-3">Specs</h2>
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <h2 className="font-semibold text-navy mb-3">Specs</h2>
                 <dl className="space-y-2 text-sm">
                   <Row label="Body Style" value={vehicle.body_style} />
                   <Row label="Engine" value={vehicle.engine} />
@@ -131,8 +131,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                 </dl>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-200 p-5">
-                <h2 className="font-semibold text-slate-900 mb-3">Condition</h2>
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <h2 className="font-semibold text-navy mb-3">Condition</h2>
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`text-2xl font-bold ${conditionColor(vehicle.condition_grade)}`}>
                     {vehicle.condition_grade}
@@ -140,7 +140,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                   <span className={`text-sm font-medium ${conditionColor(vehicle.condition_grade)}`}>
                     {conditionLabel(vehicle.condition_grade)}
                   </span>
-                  <span className="text-xs text-slate-400">/ 5.0</span>
+                  <span className="text-xs text-muted font-medium">/ 5.0</span>
                 </div>
                 <p className="text-sm text-slate-600">{vehicle.condition_report}</p>
 
@@ -152,7 +152,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
                     </h3>
                     <ul className="space-y-1">
                       {vehicle.damage_notes.map((note, i) => (
-                        <li key={i} className="text-sm text-slate-600 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-amber-400 before:rounded-full">
+                        <li key={i} className="text-sm text-slate-600 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-accent before:rounded-full">
                           {note}
                         </li>
                       ))}
@@ -163,8 +163,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
             </div>
 
             {/* Pricing summary */}
-            <div className="bg-white rounded-lg border border-slate-200 p-5">
-              <h2 className="font-semibold text-slate-900 mb-3">Pricing</h2>
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h2 className="font-semibold text-navy mb-3">Pricing</h2>
               <dl className="space-y-2 text-sm">
                 <Row label="Starting Bid" value={formatCurrency(vehicle.starting_bid)} />
                 {vehicle.buy_now_price && <Row label="Buy Now Price" value={formatCurrency(vehicle.buy_now_price)} />}
@@ -190,9 +190,9 @@ export default function VehicleDetailPage({ watchlist }: Props) {
 function Spec({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+      <Icon className="w-4 h-4 text-accent/60 flex-shrink-0" />
       <div className="min-w-0">
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-xs text-muted font-medium">{label}</p>
         <p className="text-sm text-slate-700 font-medium capitalize truncate">{value}</p>
       </div>
     </div>
@@ -203,7 +203,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
       <dt className="text-slate-500">{label}</dt>
-      <dd className="text-slate-900 font-medium capitalize">{value}</dd>
+      <dd className="text-navy font-medium capitalize">{value}</dd>
     </div>
   );
 }

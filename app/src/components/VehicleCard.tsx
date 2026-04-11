@@ -16,12 +16,12 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
   const price = currentBid || vehicle.starting_bid;
 
   return (
-    <div className="group bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all relative">
+    <div className="group bg-white rounded-xl border border-slate-200 overflow-hidden card-hover relative animate-fade-in">
       <button
         onClick={e => { e.preventDefault(); onToggleWatch(vehicle.id); }}
         className={`absolute top-2 right-2 z-10 p-1.5 rounded-full transition-all ${
           isWatched
-            ? 'bg-red-500 text-white shadow-md'
+            ? 'bg-red-500 text-white shadow-md scale-100'
             : 'bg-white/80 text-slate-400 hover:text-red-500 hover:bg-white opacity-0 group-hover:opacity-100'
         }`}
         aria-label={isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
@@ -30,7 +30,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
       </button>
 
       <Link to={`/vehicle/${vehicle.id}`}>
-        <div className="aspect-[4/3] bg-slate-100 overflow-hidden relative">
+        <div className="aspect-[4/3] bg-surface overflow-hidden relative">
           <img
             src={vehicle.images[0]}
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -38,7 +38,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             <AuctionBadge auctionStart={vehicle.auction_start} />
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded w-fit ${
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${
               vehicle.title_status === 'clean' ? 'bg-emerald-100 text-emerald-800' :
               vehicle.title_status === 'rebuilt' ? 'bg-yellow-100 text-yellow-800' :
               'bg-red-100 text-red-800'
@@ -47,7 +47,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
             </span>
           </div>
           {vehicle.buy_now_price && (
-            <span className="absolute bottom-2 right-2 bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded shadow-sm">
+            <span className="absolute bottom-2 right-2 bg-accent text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm">
               Buy Now Available
             </span>
           )}
@@ -56,12 +56,12 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="font-semibold text-slate-900 truncate">
+              <h3 className="font-semibold text-navy truncate">
                 {vehicle.year} {vehicle.make} {vehicle.model}
               </h3>
               <p className="text-sm text-slate-500 truncate">{vehicle.trim}</p>
             </div>
-            <span className="text-xs text-slate-400 whitespace-nowrap">Lot {vehicle.lot}</span>
+            <span className="text-xs text-muted whitespace-nowrap font-medium">Lot {vehicle.lot}</span>
           </div>
 
           <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
@@ -83,8 +83,8 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
 
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-end justify-between">
             <div>
-              <p className="text-xs text-slate-400">{bidCount > 0 ? 'Current Bid' : 'Starting Bid'}</p>
-              <p className="text-lg font-bold text-slate-900">{formatCurrency(price)}</p>
+              <p className="text-xs text-muted">{bidCount > 0 ? 'Current Bid' : 'Starting Bid'}</p>
+              <p className="text-lg font-bold text-navy">{formatCurrency(price)}</p>
             </div>
             {bidCount > 0 && (
               <span className="flex items-center gap-1 text-xs text-slate-500">

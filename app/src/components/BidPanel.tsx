@@ -39,25 +39,25 @@ export default function BidPanel({ vehicle, currentBid, bidCount, onPlaceBid }: 
   };
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-5">
+    <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">{bidCount > 0 ? 'Current Bid' : 'Starting Bid'}</p>
-        <p className="text-3xl font-bold text-slate-900">{formatCurrency(price)}</p>
+        <p className="text-sm text-muted font-medium">{bidCount > 0 ? 'Current Bid' : 'Starting Bid'}</p>
+        <p className="text-3xl font-bold text-navy">{formatCurrency(price)}</p>
         {bidCount > 0 && (
           <p className="text-sm text-slate-500 mt-1">{bidCount} bid{bidCount !== 1 ? 's' : ''}</p>
         )}
       </div>
 
       {vehicle.buy_now_price && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-700 font-medium">
+        <div className="mb-4 p-3 bg-accent-bg border border-accent/20 rounded-xl">
+          <p className="text-sm text-accent font-semibold">
             Buy Now: {formatCurrency(vehicle.buy_now_price)}
           </p>
         </div>
       )}
 
       {vehicle.reserve_price > price && (
-        <p className="text-xs text-slate-400 mb-3">Reserve not yet met</p>
+        <p className="text-xs text-muted mb-3 font-medium">Reserve not yet met</p>
       )}
 
       {/* Quick bid buttons */}
@@ -66,7 +66,7 @@ export default function BidPanel({ vehicle, currentBid, bidCount, onPlaceBid }: 
           <button
             key={amount}
             onClick={() => setBidAmount(amount.toString())}
-            className="flex-1 py-1.5 text-sm border border-slate-200 rounded-lg hover:border-amber-400 hover:bg-amber-50 transition"
+            className="flex-1 py-1.5 text-sm border border-slate-200 rounded-full hover:border-accent hover:bg-accent-bg hover:text-accent transition font-medium"
           >
             {formatCurrency(amount)}
           </button>
@@ -76,19 +76,19 @@ export default function BidPanel({ vehicle, currentBid, bidCount, onPlaceBid }: 
       {/* Custom bid input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">$</span>
           <input
             type="number"
             value={bidAmount}
             onChange={e => { setBidAmount(e.target.value); setFeedback(null); }}
             min={minBid}
             step={getMinIncrement(price)}
-            className="w-full pl-7 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full pl-7 pr-3 py-2.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition"
           />
         </div>
         <button
           onClick={handleBid}
-          className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg transition"
+          className="flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-full transition-all active:scale-95"
         >
           <Gavel className="w-4 h-4" />
           Place Bid
@@ -97,7 +97,7 @@ export default function BidPanel({ vehicle, currentBid, bidCount, onPlaceBid }: 
 
       {/* Feedback */}
       {feedback && (
-        <div className={`mt-3 flex items-center gap-2 text-sm p-2 rounded-lg ${
+        <div className={`mt-3 flex items-center gap-2 text-sm p-3 rounded-xl animate-fade-in ${
           feedback.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
         }`}>
           {feedback.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -105,7 +105,7 @@ export default function BidPanel({ vehicle, currentBid, bidCount, onPlaceBid }: 
         </div>
       )}
 
-      <p className="mt-3 text-xs text-slate-400 text-center">
+      <p className="mt-3 text-xs text-muted text-center font-medium">
         Min increment: {formatCurrency(getMinIncrement(price))}
       </p>
     </div>
