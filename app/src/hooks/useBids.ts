@@ -122,5 +122,13 @@ export function useBids() {
     return bidStore.get(vehicleId)?.purchased === true;
   }, [bidStore]);
 
-  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased };
+  const getActiveBidIds = useCallback((): string[] => {
+    return [...bidStore.entries()]
+      .filter(([, state]) => state.maxBid > 0)
+      .map(([id]) => id);
+  }, [bidStore]);
+
+  const activeBidCount = [...bidStore.values()].filter(s => s.maxBid > 0).length;
+
+  return { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased, getActiveBidIds, activeBidCount };
 }

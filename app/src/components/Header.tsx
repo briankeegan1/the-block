@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Gavel, Heart } from 'lucide-react';
+import { Gavel, Heart, BadgeDollarSign } from 'lucide-react';
 
 interface Props {
   watchlistCount: number;
+  myBidsCount: number;
 }
 
-export default function Header({ watchlistCount }: Props) {
+export default function Header({ watchlistCount, myBidsCount }: Props) {
   return (
     <header className="bg-navy text-white sticky top-0 z-50 shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -21,6 +22,15 @@ export default function Header({ watchlistCount }: Props) {
         <nav className="flex items-center gap-1">
           <Link to="/" className="px-3 py-1.5 rounded-full text-sm font-medium hover:bg-navy-light transition">
             Browse
+          </Link>
+          <Link to="/?mybids=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-navy-light transition">
+            <BadgeDollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">My Bids</span>
+            {myBidsCount > 0 && (
+              <span className="bg-emerald-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                {myBidsCount}
+              </span>
+            )}
           </Link>
           <Link to="/?watchlist=true" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-navy-light transition">
             <Heart className="w-4 h-4" />

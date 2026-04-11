@@ -63,12 +63,13 @@ export function useFilterParams() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const isWatchlist = searchParams.get('watchlist') === 'true';
+  const isMyBids = searchParams.get('mybids') === 'true';
   const page = Number(searchParams.get('page') || '1');
 
   const filters = useMemo(() => {
-    if (isWatchlist) return defaultFilters;
+    if (isWatchlist || isMyBids) return defaultFilters;
     return filtersFromParams(searchParams);
-  }, [searchParams, isWatchlist]);
+  }, [searchParams, isWatchlist, isMyBids]);
 
   const setFilters = useCallback((newFilters: Filters, newPage = 1) => {
     const params = filtersToParams(newFilters);
@@ -90,5 +91,13 @@ export function useFilterParams() {
     }
   }, [setSearchParams]);
 
-  return { filters, setFilters, page, setPage, isWatchlist, setWatchlist };
+  const setMyBids = useCallback((show: boolean) => {
+    if (show) {
+      setSearchParams({ mybids: 'true' }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [setSearchParams]);
+
+  return { filters, setFilters, page, setPage, isWatchlist, setWatchlist, isMyBids, setMyBids };
 }

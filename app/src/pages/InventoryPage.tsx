@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, X, ChevronLeft, ChevronRight, BadgeDollarSign } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import SearchBar from '../components/SearchBar';
 import FilterSidebar from '../components/FilterSidebar';
 import { useFilteredVehicles, defaultFilters, getVehicleById } from '../hooks/useVehicles';
 import { useFilterParams } from '../hooks/useFilterParams';
-import { useBids } from '../hooks/useBids';
 import type { Filters } from '../hooks/useVehicles';
+import type { useBids } from '../hooks/useBids';
 
 const PAGE_SIZE = 12;
 
@@ -17,20 +17,27 @@ interface Props {
     count: number;
     watchlist: Set<string>;
   };
+  bids: ReturnType<typeof useBids>;
 }
 
-export default function InventoryPage({ watchlist }: Props) {
-  const { filters, setFilters, page, setPage, isWatchlist, setWatchlist } = useFilterParams();
+export default function InventoryPage({ watchlist, bids }: Props) {
+  const { filters, setFilters, page, setPage, isWatchlist, setWatchlist, isMyBids, setMyBids } = useFilterParams();
   const vehicles = useFilteredVehicles(filters);
-  const { getCurrentBid, getBidCount } = useBids();
+  const { getCurrentBid, getBidCount } = bids;
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const handleFiltersChange = (newFilters: Filters) => {
     setFilters(newFilters, 1);
   };
 
+  const isSpecialView = isWatchlist || isMyBids;
+
   const displayVehicles = isWatchlist
     ? [...watchlist.watchlist]
+        .map(id => getVehicleById(id))
+        .filter((v): v is NonNullable<typeof v> => v != null)
+    : isMyBids
+    ? bids.getActiveBidIds()
         .map(id => getVehicleById(id))
         .filter((v): v is NonNullable<typeof v> => v != null)
     : vehicles;
@@ -50,9 +57,14 @@ export default function InventoryPage({ watchlist }: Props) {
     scrollToTop();
   };
 
+  const goBack = () => {
+    if (isWatchlist) setWatchlist(false);
+    else if (isMyBids) setMyBids(false);
+  };
+
   return (
     <div className="min-h-screen bg-surface">
-      {!isWatchlist && (
+      {!isSpecialView && (
         <SearchBar
           filters={filters}
           onChange={handleFiltersChange}
@@ -62,18 +74,24 @@ export default function InventoryPage({ watchlist }: Props) {
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {isWatchlist ? (
+        {isSpecialView ? (
           <>
             <div className="flex items-center justify-between mb-6 animate-fade-in">
               <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl font-bold text-navy">Your Watchlist</h2>
+                {isWatchlist ? (
+                  <Heart className="w-5 h-5 text-red-500" />
+                ) : (
+                  <BadgeDollarSign className="w-5 h-5 text-emerald-500" />
+                )}
+                <h2 className="text-xl font-bold text-navy">
+                  {isWatchlist ? 'Your Watchlist' : 'My Bids'}
+                </h2>
                 <span className="text-sm text-muted font-medium">
-                  ({watchlist.count} vehicle{watchlist.count !== 1 ? 's' : ''})
+                  ({displayVehicles.length} vehicle{displayVehicles.length !== 1 ? 's' : ''})
                 </span>
               </div>
               <button
-                onClick={() => setWatchlist(false)}
+                onClick={goBack}
                 className="text-sm text-accent hover:text-accent-hover font-semibold transition"
               >
                 Back to all vehicles
@@ -82,11 +100,21 @@ export default function InventoryPage({ watchlist }: Props) {
 
             {displayVehicles.length === 0 ? (
               <div className="text-center py-16 animate-fade-in">
-                <Heart className="w-12 h-12 text-muted mx-auto mb-3" />
-                <p className="text-lg text-slate-500 font-medium">Your watchlist is empty.</p>
-                <p className="text-sm text-muted mt-1">Click the heart icon on any vehicle to save it here.</p>
+                {isWatchlist ? (
+                  <>
+                    <Heart className="w-12 h-12 text-muted mx-auto mb-3" />
+                    <p className="text-lg text-slate-500 font-medium">Your watchlist is empty.</p>
+                    <p className="text-sm text-muted mt-1">Click the heart icon on any vehicle to save it here.</p>
+                  </>
+                ) : (
+                  <>
+                    <BadgeDollarSign className="w-12 h-12 text-muted mx-auto mb-3" />
+                    <p className="text-lg text-slate-500 font-medium">You haven't placed any bids yet.</p>
+                    <p className="text-sm text-muted mt-1">Browse the inventory and place a bid to get started.</p>
+                  </>
+                )}
                 <button
-                  onClick={() => setWatchlist(false)}
+                  onClick={goBack}
                   className="mt-4 px-6 py-2 bg-accent text-white rounded-full font-semibold hover:bg-accent-hover transition text-sm"
                 >
                   Browse vehicles
@@ -167,7 +195,6 @@ export default function InventoryPage({ watchlist }: Props) {
                     ))}
                   </div>
 
-                  {/* Pagination */}
                   {totalPages > 1 && (
                     <Pagination
                       page={page}
