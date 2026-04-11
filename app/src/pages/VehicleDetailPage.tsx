@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Gauge, Fuel, Settings, Car, Calendar, AlertTriangle, Store, Shield, Heart } from 'lucide-react';
 import { getVehicleById } from '../hooks/useVehicles';
 import { useBids } from '../hooks/useBids';
@@ -20,6 +20,8 @@ export default function VehicleDetailPage({ watchlist }: Props) {
   const { id } = useParams<{ id: string }>();
   const vehicle = getVehicleById(id!);
   const { placeBid, getCurrentBid, getBidCount, getUserMaxBid, buyNow, isPurchased } = useBids();
+  const location = useLocation();
+  const backTo = (location.state as { from?: string })?.from || '/';
   const [activeImage, setActiveImage] = useState(0);
 
   if (!vehicle) {
@@ -45,7 +47,7 @@ export default function VehicleDetailPage({ watchlist }: Props) {
   return (
     <div className="min-h-screen bg-surface">
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-accent mb-4 transition font-medium">
+        <Link to={backTo} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-accent mb-4 transition font-medium">
           <ArrowLeft className="w-4 h-4" />
           Back to inventory
         </Link>

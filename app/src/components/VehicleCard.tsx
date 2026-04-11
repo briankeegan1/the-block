@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MapPin, Gauge, Users, Heart } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { formatCurrency, formatKm, conditionLabel, conditionColor, getAuctionStatus } from '../lib/format';
@@ -15,6 +15,7 @@ interface Props {
 export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch }: Props) {
   const price = currentBid || vehicle.starting_bid;
   const auctionStatus = getAuctionStatus(vehicle.auction_start);
+  const location = useLocation();
 
   return (
     <div className="group bg-white rounded-xl border border-slate-200 overflow-hidden card-hover relative animate-fade-in">
@@ -30,7 +31,7 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
         <Heart className={`w-4 h-4 ${isWatched ? 'fill-current' : ''}`} />
       </button>
 
-      <Link to={`/vehicle/${vehicle.id}`}>
+      <Link to={`/vehicle/${vehicle.id}`} state={{ from: location.pathname + location.search }}>
         <div className="aspect-[4/3] bg-surface overflow-hidden relative">
           <img
             src={vehicle.images[0]}
