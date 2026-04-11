@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Heart, X } from 'lucide-react';
+import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import SearchBar from '../components/SearchBar';
 import FilterSidebar from '../components/FilterSidebar';
 import { useFilteredVehicles, defaultFilters, getVehicleById } from '../hooks/useVehicles';
 import { useBids } from '../hooks/useBids';
 import type { Filters } from '../hooks/useVehicles';
+
+const PAGE_SIZE = 12;
 
 interface Props {
   watchlist: {
@@ -24,6 +26,13 @@ export default function InventoryPage({ watchlist }: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
   const showWatchlist = searchParams.get('watchlist') === 'true';
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
+
+  // Reset to page 1 when filters change
+  const handleFiltersChange = (newFilters: Filters) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
 
   const displayVehicles = showWatchlist
     ? [...watchlist.watchlist]
@@ -31,12 +40,27 @@ export default function InventoryPage({ watchlist }: Props) {
         .filter((v): v is NonNullable<typeof v> => v != null)
     : vehicles;
 
+  const totalPages = Math.ceil(displayVehicles.length / PAGE_SIZE);
+  const pagedVehicles = useMemo(
+    () => displayVehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [displayVehicles, page]
+  );
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    scrollToTop();
+  };
+
   return (
     <div className="min-h-screen bg-surface">
       {!showWatchlist && (
         <SearchBar
           filters={filters}
-          onChange={setFilters}
+          onChange={handleFiltersChange}
           resultCount={vehicles.length}
           onToggleMobileFilters={() => setMobileFiltersOpen(v => !v)}
         />
@@ -93,7 +117,7 @@ export default function InventoryPage({ watchlist }: Props) {
             {/* Desktop sidebar */}
             <div className="hidden lg:block w-60 flex-shrink-0">
               <div className="sticky top-[120px] max-h-[calc(100vh-140px)] overflow-y-auto pr-2">
-                <FilterSidebar filters={filters} onChange={setFilters} />
+                <FilterSidebar filters={filters} onChange={handleFiltersChange} />
               </div>
             </div>
 
@@ -115,7 +139,7 @@ export default function InventoryPage({ watchlist }: Props) {
                     </button>
                   </div>
                   <div className="p-4">
-                    <FilterSidebar filters={filters} onChange={setFilters} />
+                    <FilterSidebar filters={filters} onChange={handleFiltersChange} />
                   </div>
                 </div>
               </>
@@ -127,29 +151,111 @@ export default function InventoryPage({ watchlist }: Props) {
                 <div className="text-center py-16 animate-fade-in">
                   <p className="text-lg text-slate-500 font-medium">No vehicles match your criteria.</p>
                   <button
-                    onClick={() => setFilters(defaultFilters)}
+                    onClick={() => handleFiltersChange(defaultFilters)}
                     className="mt-3 text-accent hover:text-accent-hover text-sm font-semibold transition"
                   >
                     Clear all filters
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {displayVehicles.map(v => (
-                    <VehicleCard
-                      key={v.id}
-                      vehicle={v}
-                      currentBid={getCurrentBid(v.id, v.current_bid)}
-                      bidCount={getBidCount(v.id, v.bid_count)}
-                      isWatched={watchlist.isWatched(v.id)}
-                      onToggleWatch={watchlist.toggle}
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {pagedVehicles.map(v => (
+                      <VehicleCard
+                        key={v.id}
+                        vehicle={v}
+                        currentBid={getCurrentBid(v.id, v.current_bid)}
+                        bidCount={getBidCount(v.id, v.bid_count)}
+                        isWatched={watchlist.isWatched(v.id)}
+                        onToggleWatch={watchlist.toggle}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      totalItems={displayVehicles.length}
+                      pageSize={PAGE_SIZE}
+                      onPageChange={goToPage}
                     />
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function Pagination({ page, totalPages, totalItems, pageSize, onPageChange }: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+}) {
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems);
+
+  // Build page numbers with ellipsis
+  const pages: (number | '...')[] = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (page > 3) pages.push('...');
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      pages.push(i);
+    }
+    if (page < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  return (
+    <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p className="text-sm text-muted font-medium">
+        Showing {start}–{end} of {totalItems} vehicles
+      </p>
+
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          className="p-2 rounded-full border border-slate-200 hover:border-accent hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        {pages.map((p, i) =>
+          p === '...' ? (
+            <span key={`ellipsis-${i}`} className="px-2 text-sm text-muted">...</span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              className={`w-9 h-9 rounded-full text-sm font-medium transition ${
+                p === page
+                  ? 'bg-accent text-white'
+                  : 'border border-slate-200 hover:border-accent hover:text-accent'
+              }`}
+            >
+              {p}
+            </button>
+          )
+        )}
+
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+          className="p-2 rounded-full border border-slate-200 hover:border-accent hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
