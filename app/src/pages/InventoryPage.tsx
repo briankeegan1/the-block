@@ -92,7 +92,7 @@ export default function InventoryPage({ watchlist }: Props) {
           <div className="flex gap-6">
             {/* Desktop sidebar */}
             <div className="hidden lg:block w-60 flex-shrink-0">
-              <div className="sticky top-[120px]">
+              <div className="sticky top-[120px] max-h-[calc(100vh-140px)] overflow-y-auto pr-2">
                 <FilterSidebar filters={filters} onChange={setFilters} />
               </div>
             </div>
