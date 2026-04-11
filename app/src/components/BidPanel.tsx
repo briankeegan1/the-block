@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Gavel, ShieldCheck, ArrowUp, Ban, Clock, ShoppingCart, CheckCircle, Trophy } from 'lucide-react';
+import { Gavel, ShieldCheck, ArrowUp, Ban, Clock, ShoppingCart, Trophy } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { formatCurrency, getAuctionStatus } from '../lib/format';
 import ConfirmBidModal from './ConfirmBidModal';
@@ -105,10 +105,10 @@ export default function BidPanel({ vehicle, currentBid, bidCount, userMaxBid, pu
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
         {/* Purchased state */}
         {purchased && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center mb-4">
-            <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-            <p className="text-sm font-bold text-emerald-800">Vehicle Purchased</p>
-            <p className="text-xs text-emerald-600 mt-1">
+          <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl text-center mb-4">
+            <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <p className="text-sm font-bold text-amber-800">Vehicle Purchased</p>
+            <p className="text-xs text-amber-700 mt-1">
               You bought this vehicle for {formatCurrency(price)}.
             </p>
           </div>
