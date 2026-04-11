@@ -24,7 +24,7 @@ interface Props {
 export default function InventoryPage({ watchlist, bids }: Props) {
   const { filters, setFilters, page, setPage, isWatchlist, setWatchlist, isMyBids, setMyBids } = useFilterParams();
   const vehicles = useFilteredVehicles(filters);
-  const { getCurrentBid, getBidCount, getUserMaxBid } = bids;
+  const { getCurrentBid, getBidCount, getUserMaxBid, isPurchased } = bids;
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [specialSort, setSpecialSort] = useState('status');
 
@@ -175,6 +175,8 @@ export default function InventoryPage({ watchlist, bids }: Props) {
                     bidCount={getBidCount(v.id, v.bid_count)}
                     isWatched={watchlist.isWatched(v.id)}
                     onToggleWatch={watchlist.toggle}
+                    userMaxBid={getUserMaxBid(v.id)}
+                    purchased={isPurchased(v.id)}
                   />
                 ))}
               </div>

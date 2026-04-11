@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Gavel, ShieldCheck, ArrowUp, Ban, Clock, ShoppingCart, CheckCircle } from 'lucide-react';
+import { Gavel, ShieldCheck, ArrowUp, Ban, Clock, ShoppingCart, CheckCircle, Trophy } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { formatCurrency, getAuctionStatus } from '../lib/format';
 import ConfirmBidModal from './ConfirmBidModal';
@@ -130,18 +130,23 @@ export default function BidPanel({ vehicle, currentBid, bidCount, userMaxBid, pu
           </div>
         )}
 
-        {/* Ended auction state */}
-        {auctionStatus === 'ended' && !purchased && (
+        {/* Ended auction — won */}
+        {auctionStatus === 'ended' && !purchased && userMaxBid !== null && (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+            <Trophy className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <p className="text-sm font-bold text-emerald-800">You Won This Auction!</p>
+            <p className="text-xs text-emerald-600 mt-1">
+              Winning bid: {formatCurrency(userMaxBid)}
+            </p>
+          </div>
+        )}
+
+        {/* Ended auction — no bid placed */}
+        {auctionStatus === 'ended' && !purchased && userMaxBid === null && (
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center">
             <Ban className="w-6 h-6 text-slate-400 mx-auto mb-2" />
             <p className="text-sm font-semibold text-slate-700">Auction Ended</p>
             <p className="text-xs text-slate-500 mt-1">Bidding is closed for this vehicle.</p>
-            {userMaxBid !== null && (
-              <div className="mt-3 p-2 bg-white rounded-lg border border-slate-200">
-                <p className="text-xs text-slate-500">Your max bid was</p>
-                <p className="text-sm font-bold text-navy">{formatCurrency(userMaxBid)}</p>
-              </div>
-            )}
           </div>
         )}
 

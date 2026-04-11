@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Gauge, Users, Heart } from 'lucide-react';
+import { MapPin, Gauge, Users, Heart, Trophy } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { formatCurrency, formatKm, conditionLabel, conditionColor, getAuctionStatus } from '../lib/format';
 import AuctionBadge from './AuctionBadge';
@@ -10,9 +10,11 @@ interface Props {
   bidCount: number;
   isWatched: boolean;
   onToggleWatch: (id: string) => void;
+  userMaxBid?: number | null;
+  purchased?: boolean;
 }
 
-export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch }: Props) {
+export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, onToggleWatch, userMaxBid, purchased }: Props) {
   const price = currentBid || vehicle.starting_bid;
   const auctionStatus = getAuctionStatus(vehicle.auction_start);
   const location = useLocation();
@@ -48,9 +50,21 @@ export default function VehicleCard({ vehicle, currentBid, bidCount, isWatched, 
               {vehicle.title_status.charAt(0).toUpperCase() + vehicle.title_status.slice(1)}
             </span>
           </div>
-          {vehicle.buy_now_price && auctionStatus === 'live' && (
+          {vehicle.buy_now_price && auctionStatus === 'live' && !purchased && (
             <span className="absolute bottom-2 right-2 bg-accent text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm">
               Buy Now Available
+            </span>
+          )}
+          {purchased && (
+            <span className="absolute bottom-2 right-2 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              Purchased
+            </span>
+          )}
+          {!purchased && auctionStatus === 'ended' && userMaxBid != null && (
+            <span className="absolute bottom-2 right-2 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+              <Trophy className="w-3 h-3" />
+              Won
             </span>
           )}
         </div>
