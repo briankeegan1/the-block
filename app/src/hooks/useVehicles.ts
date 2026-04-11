@@ -16,6 +16,7 @@ export interface Filters {
   titleStatuses: string[];
   auctionStatuses: string[];
   conditions: string[];
+  buyNowOnly: boolean;
   minPrice: string;
   maxPrice: string;
   sortBy: string;
@@ -32,6 +33,7 @@ export const defaultFilters: Filters = {
   titleStatuses: [],
   auctionStatuses: [],
   conditions: [],
+  buyNowOnly: false,
   minPrice: '',
   maxPrice: '',
   sortBy: 'recommended',
@@ -62,6 +64,7 @@ export function getActiveFilterCount(filters: Filters): number {
     filters.titleStatuses.length,
     filters.auctionStatuses.length,
     filters.conditions.length,
+    filters.buyNowOnly ? 1 : 0,
     filters.minPrice ? 1 : 0,
     filters.maxPrice ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
@@ -94,6 +97,7 @@ export function useFilteredVehicles(filters: Filters) {
     if (filters.titleStatuses.length) result = result.filter(v => filters.titleStatuses.includes(v.title_status));
     if (filters.auctionStatuses.length) result = result.filter(v => filters.auctionStatuses.includes(getAuctionStatus(v.auction_start)));
     if (filters.conditions.length) result = result.filter(v => filters.conditions.includes(conditionLabel(v.condition_grade)));
+    if (filters.buyNowOnly) result = result.filter(v => v.buy_now_price !== null);
     if (filters.minPrice) result = result.filter(v => (v.current_bid || v.starting_bid) >= Number(filters.minPrice));
     if (filters.maxPrice) result = result.filter(v => (v.current_bid || v.starting_bid) <= Number(filters.maxPrice));
 

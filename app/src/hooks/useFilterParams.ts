@@ -15,6 +15,7 @@ const PARAM_MAP: Record<string, string> = {
   titleStatuses: 'title',
   auctionStatuses: 'status',
   conditions: 'cond',
+  buyNowOnly: 'buynow',
   minPrice: 'min',
   maxPrice: 'max',
   sortBy: 'sort',
@@ -34,6 +35,8 @@ function filtersFromParams(params: URLSearchParams): Filters {
 
     if (ARRAY_KEYS.has(key)) {
       (filters as unknown as Record<string, unknown>)[key] = value.split(',');
+    } else if (key === 'buyNowOnly') {
+      (filters as unknown as Record<string, unknown>)[key] = value === '1';
     } else {
       (filters as unknown as Record<string, unknown>)[key] = value;
     }
@@ -51,6 +54,8 @@ function filtersToParams(filters: Filters): URLSearchParams {
 
     if (Array.isArray(value)) {
       if (value.length > 0) params.set(param, value.join(','));
+    } else if (typeof value === 'boolean') {
+      if (value) params.set(param, '1');
     } else if (typeof value === 'string' && value && value !== defaultValue) {
       params.set(param, value);
     }

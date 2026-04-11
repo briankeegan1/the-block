@@ -28,13 +28,15 @@ export default function FilterSidebar({ filters, onChange }: Props) {
     onChange({
       ...filters,
       makes: [], bodyStyles: [], transmissions: [], drivetrains: [],
-      fuelTypes: [], provinces: [], titleStatuses: [], auctionStatuses: [], conditions: [], minPrice: '', maxPrice: '',
+      fuelTypes: [], provinces: [], titleStatuses: [], auctionStatuses: [], conditions: [], buyNowOnly: false, minPrice: '', maxPrice: '',
     });
   };
 
   const removeFilter = (key: keyof Filters, value?: string) => {
     if (value && Array.isArray(filters[key])) {
       onChange({ ...filters, [key]: (filters[key] as string[]).filter(v => v !== value) });
+    } else if (typeof filters[key] === 'boolean') {
+      onChange({ ...filters, [key]: false });
     } else {
       onChange({ ...filters, [key]: typeof filters[key] === 'string' ? '' : [] });
     }
@@ -51,6 +53,7 @@ export default function FilterSidebar({ filters, onChange }: Props) {
   for (const v of filters.titleStatuses) chips.push({ key: 'titleStatuses', value: v, label: capitalize(v) });
   for (const v of filters.auctionStatuses) chips.push({ key: 'auctionStatuses', value: v, label: capitalize(v) });
   for (const v of filters.conditions) chips.push({ key: 'conditions', value: v, label: v });
+  if (filters.buyNowOnly) chips.push({ key: 'buyNowOnly', value: '', label: 'Buy Now Only' });
   if (filters.minPrice) chips.push({ key: 'minPrice', value: '', label: `Min: $${filters.minPrice}` });
   if (filters.maxPrice) chips.push({ key: 'maxPrice', value: '', label: `Max: $${filters.maxPrice}` });
 
@@ -93,6 +96,28 @@ export default function FilterSidebar({ filters, onChange }: Props) {
           selected={filters.auctionStatuses}
           onToggle={v => toggleArrayFilter('auctionStatuses', v)}
         />
+
+        {/* Buy Now toggle */}
+        <div className="border-b border-slate-100">
+          <label className="flex items-center justify-between w-full py-3 cursor-pointer group">
+            <span className="text-sm font-semibold text-navy group-hover:text-accent transition">
+              Buy Now Only
+            </span>
+            <div
+              className={`relative w-9 h-5 rounded-full transition-colors ${
+                filters.buyNowOnly ? 'bg-accent' : 'bg-slate-300'
+              }`}
+              onClick={() => onChange({ ...filters, buyNowOnly: !filters.buyNowOnly })}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                  filters.buyNowOnly ? 'translate-x-4' : 'translate-x-0.5'
+                }`}
+              />
+            </div>
+          </label>
+        </div>
+
         <CheckboxGroup
           label="Condition"
           options={options.conditions}
