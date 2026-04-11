@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import SearchBar from '../components/SearchBar';
 import FilterSidebar from '../components/FilterSidebar';
 import { useFilteredVehicles, defaultFilters, getVehicleById } from '../hooks/useVehicles';
+import { useFilterParams } from '../hooks/useFilterParams';
 import { useBids } from '../hooks/useBids';
 import type { Filters } from '../hooks/useVehicles';
 
@@ -20,21 +20,16 @@ interface Props {
 }
 
 export default function InventoryPage({ watchlist }: Props) {
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const { filters, setFilters, page, setPage, isWatchlist, setWatchlist } = useFilterParams();
   const vehicles = useFilteredVehicles(filters);
   const { getCurrentBid, getBidCount } = useBids();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const showWatchlist = searchParams.get('watchlist') === 'true';
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [page, setPage] = useState(1);
 
-  // Reset to page 1 when filters change
   const handleFiltersChange = (newFilters: Filters) => {
-    setFilters(newFilters);
-    setPage(1);
+    setFilters(newFilters, 1);
   };
 
-  const displayVehicles = showWatchlist
+  const displayVehicles = isWatchlist
     ? [...watchlist.watchlist]
         .map(id => getVehicleById(id))
         .filter((v): v is NonNullable<typeof v> => v != null)
@@ -57,7 +52,7 @@ export default function InventoryPage({ watchlist }: Props) {
 
   return (
     <div className="min-h-screen bg-surface">
-      {!showWatchlist && (
+      {!isWatchlist && (
         <SearchBar
           filters={filters}
           onChange={handleFiltersChange}
@@ -67,7 +62,7 @@ export default function InventoryPage({ watchlist }: Props) {
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {showWatchlist ? (
+        {isWatchlist ? (
           <>
             <div className="flex items-center justify-between mb-6 animate-fade-in">
               <div className="flex items-center gap-2">
@@ -78,7 +73,7 @@ export default function InventoryPage({ watchlist }: Props) {
                 </span>
               </div>
               <button
-                onClick={() => setSearchParams({})}
+                onClick={() => setWatchlist(false)}
                 className="text-sm text-accent hover:text-accent-hover font-semibold transition"
               >
                 Back to all vehicles
@@ -91,7 +86,7 @@ export default function InventoryPage({ watchlist }: Props) {
                 <p className="text-lg text-slate-500 font-medium">Your watchlist is empty.</p>
                 <p className="text-sm text-muted mt-1">Click the heart icon on any vehicle to save it here.</p>
                 <button
-                  onClick={() => setSearchParams({})}
+                  onClick={() => setWatchlist(false)}
                   className="mt-4 px-6 py-2 bg-accent text-white rounded-full font-semibold hover:bg-accent-hover transition text-sm"
                 >
                   Browse vehicles
@@ -202,7 +197,6 @@ function Pagination({ page, totalPages, totalItems, pageSize, onPageChange }: {
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalItems);
 
-  // Build page numbers with ellipsis
   const pages: (number | '...')[] = [];
   if (totalPages <= 7) {
     for (let i = 1; i <= totalPages; i++) pages.push(i);

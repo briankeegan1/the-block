@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import vehiclesData from '../data/vehicles.json';
 import type { Vehicle } from '../types/vehicle';
-import { getAuctionStatus } from '../lib/format';
+import { getAuctionStatus, conditionLabel } from '../lib/format';
 
 const vehicles = vehiclesData as Vehicle[];
 
@@ -15,6 +15,7 @@ export interface Filters {
   provinces: string[];
   titleStatuses: string[];
   auctionStatuses: string[];
+  conditions: string[];
   minPrice: string;
   maxPrice: string;
   sortBy: string;
@@ -30,6 +31,7 @@ export const defaultFilters: Filters = {
   provinces: [],
   titleStatuses: [],
   auctionStatuses: [],
+  conditions: [],
   minPrice: '',
   maxPrice: '',
   sortBy: 'recommended',
@@ -45,6 +47,7 @@ export function getFilterOptions() {
     provinces: [...new Set(vehicles.map(v => v.province))].sort(),
     titleStatuses: [...new Set(vehicles.map(v => v.title_status))].sort(),
     auctionStatuses: ['live', 'upcoming', 'ended'] as string[],
+    conditions: ['Excellent', 'Good', 'Fair', 'Below Average', 'Poor'] as string[],
   };
 }
 
@@ -58,6 +61,7 @@ export function getActiveFilterCount(filters: Filters): number {
     filters.provinces.length,
     filters.titleStatuses.length,
     filters.auctionStatuses.length,
+    filters.conditions.length,
     filters.minPrice ? 1 : 0,
     filters.maxPrice ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
@@ -89,6 +93,7 @@ export function useFilteredVehicles(filters: Filters) {
     if (filters.provinces.length) result = result.filter(v => filters.provinces.includes(v.province));
     if (filters.titleStatuses.length) result = result.filter(v => filters.titleStatuses.includes(v.title_status));
     if (filters.auctionStatuses.length) result = result.filter(v => filters.auctionStatuses.includes(getAuctionStatus(v.auction_start)));
+    if (filters.conditions.length) result = result.filter(v => filters.conditions.includes(conditionLabel(v.condition_grade)));
     if (filters.minPrice) result = result.filter(v => (v.current_bid || v.starting_bid) >= Number(filters.minPrice));
     if (filters.maxPrice) result = result.filter(v => (v.current_bid || v.starting_bid) <= Number(filters.maxPrice));
 

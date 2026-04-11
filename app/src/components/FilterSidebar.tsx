@@ -28,7 +28,7 @@ export default function FilterSidebar({ filters, onChange }: Props) {
     onChange({
       ...filters,
       makes: [], bodyStyles: [], transmissions: [], drivetrains: [],
-      fuelTypes: [], provinces: [], titleStatuses: [], auctionStatuses: [], minPrice: '', maxPrice: '',
+      fuelTypes: [], provinces: [], titleStatuses: [], auctionStatuses: [], conditions: [], minPrice: '', maxPrice: '',
     });
   };
 
@@ -50,6 +50,7 @@ export default function FilterSidebar({ filters, onChange }: Props) {
   for (const v of filters.provinces) chips.push({ key: 'provinces', value: v, label: v });
   for (const v of filters.titleStatuses) chips.push({ key: 'titleStatuses', value: v, label: capitalize(v) });
   for (const v of filters.auctionStatuses) chips.push({ key: 'auctionStatuses', value: v, label: capitalize(v) });
+  for (const v of filters.conditions) chips.push({ key: 'conditions', value: v, label: v });
   if (filters.minPrice) chips.push({ key: 'minPrice', value: '', label: `Min: $${filters.minPrice}` });
   if (filters.maxPrice) chips.push({ key: 'maxPrice', value: '', label: `Max: $${filters.maxPrice}` });
 
@@ -91,6 +92,12 @@ export default function FilterSidebar({ filters, onChange }: Props) {
           options={options.auctionStatuses}
           selected={filters.auctionStatuses}
           onToggle={v => toggleArrayFilter('auctionStatuses', v)}
+        />
+        <CheckboxGroup
+          label="Condition"
+          options={options.conditions}
+          selected={filters.conditions}
+          onToggle={v => toggleArrayFilter('conditions', v)}
         />
         <CheckboxGroup
           label="Make"

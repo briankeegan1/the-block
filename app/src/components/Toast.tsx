@@ -8,7 +8,7 @@ interface Props {
   duration?: number;
 }
 
-export default function Toast({ message, type, onClose, duration = 4000 }: Props) {
+export default function Toast({ message, type, onClose, duration = 6000 }: Props) {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
